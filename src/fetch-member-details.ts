@@ -27,14 +27,14 @@ export const fetchMemberDetails = async (id: string | number, cookie: string) =>
 	})
 	const html = await response.text()
 	const matches = html.matchAll(
-		/(<p class="text--bold">(?<question>.+?)<\/p><p>(?<answer>.+?)<\/p>|<span>RSVPs<\/span><\/p><span><span>(?<rsvp_yes>\d+) yes<\/span><\/span><span class="text--middotLeft display--inline"><span>(?<rsvp_no>\d+) no<\/span><\/span><span class="text--middotLeft display--inline"><span>(?<rsvp_no_show>\d+) no-show<\/span>)/g,
+		/(<p class="text--bold">(?<question>.+?)<\/p><p>(?<answer>.+?)<\/p>|<span>RSVPs<\/span><\/p><span><span>(?<rsvp_yes>\d+) yes<\/span><\/span><span class="text--middotLeft display--inline"><span>(?<rsvp_no>\d+) no<\/span>(?:<\/span><span class="text--middotLeft display--inline"><span>(?<rsvp_no_show>\d+) no-show<\/span>)?)/g,
 	)
 	return [...matches].reduce(
 		(extraInfo, match) => {
 			if (match.groups?.rsvp_yes !== undefined) {
 				extraInfo.rsvp_yes = Number.parseInt(match.groups?.rsvp_yes, 10)
 				extraInfo.rsvp_no = Number.parseInt(match.groups?.rsvp_no, 10)
-				extraInfo.rsvp_no_show = Number.parseInt(match.groups?.rsvp_no_show, 10)
+				extraInfo.rsvp_no_show = Number.parseInt(match.groups?.rsvp_no_show ?? 0, 10)
 			}
 			if (match.groups?.question !== undefined) {
 				extraInfo.questions[match.groups?.question.replaceAll(/<\/?\w+>/g, "")] = match.groups?.answer
