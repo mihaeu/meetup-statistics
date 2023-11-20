@@ -5,15 +5,22 @@ import { membersToTsv } from "./members-to-tsv.js"
 import { pastEventsToTsv } from "./past-events-to-tsv.js"
 import { createInterface } from "readline/promises"
 import { stdin as input, stdout as output } from "node:process"
+import {mkdir, exists} from "fs/promises";
+import {join} from "path";
 
 const rl = createInterface({ input, output })
 let username
 let password
 let groupName
 
-const membersCache = Bun.file("members.json", { type: "application/json" })
+const cachePath = join(__dirname, '..', '.cache')
+if (!(await exists(cachePath))) {
+    await mkdir(cachePath)
+}
+
+const membersCache = Bun.file(`${cachePath}/members.json`, { type: "application/json" })
 const membersCacheExists = await membersCache.exists()
-const eventsCache = Bun.file("events.json", { type: "application/json" })
+const eventsCache = Bun.file(`${cachePath}/events.json`, { type: "application/json" })
 const eventsCacheExists = await eventsCache.exists()
 
 let cookie = ""
@@ -33,8 +40,8 @@ if (membersCacheExists) {
 	console.log("Using cache file ...")
 	members = await membersCache.json()
 } else {
-	members = await fetchMembers(cookie, groupName, true)
-	await Bun.write("members.json", JSON.stringify(members, null, 2))
+	members = await fetchMembers(cookie, groupName, true, cachePath)
+	await Bun.write(`${cachePath}/members.json`, JSON.stringify(members, null, 2))
 }
 
 console.log("Fetching events ...")
@@ -45,7 +52,7 @@ if (eventsCacheExists) {
 	events = await eventsCache.json()
 } else {
 	events = await fetchPastEvents(members, groupName, cookie)
-	await Bun.write("events.json", JSON.stringify(events, null, 2))
+	await Bun.write(`${cachePath}/events.json`, JSON.stringify(events, null, 2))
 }
 
 await Bun.write("members.tsv", membersToTsv(members))

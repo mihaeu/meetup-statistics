@@ -1,4 +1,5 @@
 import { fetchMemberDetails, MemberExtraInfo } from "./fetch-member-details.js"
+import {exists} from "fs/promises";
 
 export type MemberResponse = {
 	id: string
@@ -24,7 +25,7 @@ const encodeRFC3986URIComponent = (str: string) => {
 	return encodeURIComponent(str).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`)
 }
 
-export const fetchMembers = async (cookie: string, groupName: string, withExtraInfo: boolean = false) => {
+export const fetchMembers = async (cookie: string, groupName: string, withExtraInfo: boolean = false, cachePath: string) => {
 	let page = 1
 	let members: MemberResponse[] = []
 	let currentResponse = []
@@ -65,9 +66,15 @@ export const fetchMembers = async (cookie: string, groupName: string, withExtraI
 	if (withExtraInfo) {
 		console.log(`Adding extra info for members ...`)
 		for (const member of members) {
-			process.stdout.write(".")
-			member.extraInfo = await fetchMemberDetails(member.id, cookie)
-			await Bun.sleep(500)
+            const extraInfoCache = `${cachePath}/${member.id}-${member.last_visited}.json`
+            process.stdout.write(".")
+            if (await exists(extraInfoCache)) {
+                member.extraInfo = await Bun.file(extraInfoCache).json()
+            } else {
+                member.extraInfo = await fetchMemberDetails(member.id, cookie)
+                await Bun.write(extraInfoCache, JSON.stringify(member.extraInfo))
+                await Bun.sleep(500)
+            }
 		}
 		console.log()
 	}

@@ -1,5 +1,4 @@
 node_modules
 tmp
 *.tsv
-members.json
-events.json
+.cache

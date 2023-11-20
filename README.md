@@ -31,6 +31,8 @@ If everything goes well you should be queried about your meetup username, passwo
 
 After running the scripts (depending on the number of members this can take several minutes, because I added delay in-between requests in order to be nice to meetup servers) you should two files called `members.tsv` and `past-events.tsv`. Those files can easily be imported into Microsoft Excel, Google Sheets etc. for further analysis.
 
+Requests are cached in a `.cache` folder. If this is not desired, delete the folder before running the script (or delete only the `.cache/members.json` and `.cache/events.json` and keep all other ones, because they are timestamped).
+
 ### Events
 
 | id  | title         | event_url                                       | description | venue      | creator | created_time | start_time  | end_time    | going | event_type | host1 | host2 | host3 | attendees                                |

@@ -24,9 +24,9 @@ export const membersToTsv = (members: MemberResponse[]) => {
 			member.joined,
 			member.status,
 			member.last_visited,
-			`${member.extraInfo?.rsvp_yes}`,
-			`${member.extraInfo?.rsvp_no}`,
-			`${member.extraInfo?.rsvp_no_show}`,
+			`${member.extraInfo?.rsvp_yes ?? ''}`,
+			`${member.extraInfo?.rsvp_no ?? ''}`,
+			`${member.extraInfo?.rsvp_no_show ?? ''}`,
 			...questions,
 		]
 	})
