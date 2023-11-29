@@ -96,7 +96,6 @@ export const fetchPastEvents = async (
 			"sec-fetch-dest": "empty",
 			"sec-fetch-mode": "cors",
 			"sec-fetch-site": "same-origin",
-			"x-meetup-view-id": "43222e6b-8582-44cf-9188-318ff7bc6a29",
 			cookie,
 			Referer: `https://www.meetup.com/${groupName}/events/`,
 			"Referrer-Policy": "strict-origin-when-cross-origin",

@@ -5,17 +5,18 @@ import { membersToTsv } from "./members-to-tsv.js"
 import { pastEventsToTsv } from "./past-events-to-tsv.js"
 import { createInterface } from "readline/promises"
 import { stdin as input, stdout as output } from "node:process"
-import {mkdir, exists} from "fs/promises";
-import {join} from "path";
+import { exists, mkdir } from "fs/promises"
+import { join } from "path"
+import { fetchGroupIdByName } from "./fetch-group-id-by-name.js"
 
 const rl = createInterface({ input, output })
 let username
 let password
 const groupName = await rl.question(`What is your group's name on meetup.com? `)
 
-const cachePath = join(__dirname, '..', '.cache', groupName)
+const cachePath = join(__dirname, "..", ".cache", groupName)
 if (!(await exists(cachePath))) {
-    await mkdir(cachePath, {recursive: true})
+	await mkdir(cachePath, { recursive: true })
 }
 
 const membersCache = Bun.file(`${cachePath}/members.json`, { type: "application/json" })
@@ -32,6 +33,8 @@ if (!membersCacheExists || !eventsCacheExists) {
 }
 rl.close()
 
+const groupId = await fetchGroupIdByName(groupName, cookie)
+
 console.log("Fetching members ...")
 
 let members
@@ -39,7 +42,7 @@ if (membersCacheExists) {
 	console.log("Using cache file ...")
 	members = await membersCache.json()
 } else {
-	members = await fetchMembers(cookie, groupName, true, cachePath)
+	members = await fetchMembers(cookie, groupName, groupId, true, cachePath)
 	await Bun.write(`${cachePath}/members.json`, JSON.stringify(members, null, 2))
 }
 

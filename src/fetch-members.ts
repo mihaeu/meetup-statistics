@@ -1,5 +1,5 @@
 import { fetchMemberDetails, MemberExtraInfo } from "./fetch-member-details.js"
-import {exists} from "fs/promises";
+import { exists } from "fs/promises"
 
 export type MemberResponse = {
 	id: string
@@ -25,7 +25,13 @@ const encodeRFC3986URIComponent = (str: string) => {
 	return encodeURIComponent(str).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`)
 }
 
-export const fetchMembers = async (cookie: string, groupName: string, withExtraInfo: boolean = false, cachePath: string) => {
+export const fetchMembers = async (
+	cookie: string,
+	groupName: string,
+	groupId: string,
+	withExtraInfo: boolean = false,
+	cachePath: string,
+) => {
 	let page = 1
 	let members: MemberResponse[] = []
 	let currentResponse = []
@@ -46,7 +52,6 @@ export const fetchMembers = async (cookie: string, groupName: string, withExtraI
 				"sec-fetch-dest": "empty",
 				"sec-fetch-mode": "cors",
 				"sec-fetch-site": "same-origin",
-				"x-meetup-view-id": "43222e6b-8582-44cf-9188-318ff7bc6a29",
 				cookie,
 				Referer: `https://www.meetup.com/${groupName}/`,
 				"Referrer-Policy": "strict-origin-when-cross-origin",
@@ -66,15 +71,15 @@ export const fetchMembers = async (cookie: string, groupName: string, withExtraI
 	if (withExtraInfo) {
 		console.log(`Adding extra info for members ...`)
 		for (const member of members) {
-            const extraInfoCache = `${cachePath}/${member.id}-${member.last_visited}.json`
-            process.stdout.write(".")
-            if (await exists(extraInfoCache)) {
-                member.extraInfo = await Bun.file(extraInfoCache).json()
-            } else {
-                member.extraInfo = await fetchMemberDetails(member.id, groupName, cookie)
-                await Bun.write(extraInfoCache, JSON.stringify(member.extraInfo))
-                await Bun.sleep(500)
-            }
+			const extraInfoCache = `${cachePath}/${member.last_visited}-${member.id}.json`
+			process.stdout.write(".")
+			if (await exists(extraInfoCache)) {
+				member.extraInfo = await Bun.file(extraInfoCache).json()
+			} else {
+				member.extraInfo = await fetchMemberDetails(member.id, groupName, groupId, cookie)
+				await Bun.write(extraInfoCache, JSON.stringify(member.extraInfo))
+				await Bun.sleep(500)
+			}
 		}
 		console.log()
 	}

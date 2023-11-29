@@ -11,6 +11,7 @@ export const membersToTsv = (members: MemberResponse[]) => {
 		"rsvp_yes",
 		"rsvp_no",
 		"rsvp_no_show",
+		"rsvp_waiting_list",
 		"questions and answers...",
 	]
 	const rows = members.map((member) => {
@@ -24,9 +25,10 @@ export const membersToTsv = (members: MemberResponse[]) => {
 			member.joined,
 			member.status,
 			member.last_visited,
-			`${member.extraInfo?.rsvp_yes ?? ''}`,
-			`${member.extraInfo?.rsvp_no ?? ''}`,
-			`${member.extraInfo?.rsvp_no_show ?? ''}`,
+			`${member.extraInfo?.rsvp_yes ?? ""}`,
+			`${member.extraInfo?.rsvp_no ?? ""}`,
+			`${member.extraInfo?.rsvp_no_show ?? ""}`,
+			`${member.extraInfo?.rsvp_waiting_list ?? ""}`,
 			...questions,
 		]
 	})

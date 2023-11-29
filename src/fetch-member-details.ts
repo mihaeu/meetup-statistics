@@ -3,10 +3,109 @@ export type MemberExtraInfo = {
 	rsvp_yes: number
 	rsvp_no: number
 	rsvp_no_show: number
+	rsvp_waiting_list: number
 }
 
-export const fetchMemberDetails = async (id: string | number, groupName: string, cookie: string) => {
-	const response = await fetch(`https://www.meetup.com/${groupName}/members/${id}/profile`, {
+type RSVPStatus = "ATTENDED" | "NO" | "YES"
+type Role = "MEMBER" | "ORGANIZER" | "COORGANIZER"
+export type MemberDetailsResponse = {
+	data: {
+		member: {
+			id: string
+			isOrganizer: boolean
+			isMemberPlusSubscriber: boolean
+			memberPhoto: {
+				id: string
+				baseUrl: string
+				__typename: "PhotoInfo"
+			}
+			name: string
+			pastAndFutureRsvps: {
+				pageInfo: {
+					hasNextPage: boolean
+					endCursor: string
+					__typename: "PageInfo"
+				}
+				totalCount: number
+				edges: {
+					node: {
+						id: string
+						status: RSVPStatus
+						event: {
+							id: string
+							title: string
+							eventUrl: string
+							dateTime: string
+							status: "PAST"
+							__typename: "Event"
+						}
+						__typename: "Rsvp"
+					}
+					__typename: "RsvpEdge"
+				}[]
+				__typename: "MemberRsvpConnection"
+			}
+			__typename: "Member"
+		}
+		group: {
+			id: string
+			urlname: string
+			name: string
+			keyGroupPhoto: {
+				id: string
+				baseUrl: string
+				__typename: "PhotoInfo"
+			}
+			duesSettings: null
+			isPrivate: boolean
+			isMember: boolean
+			needsQuestions: boolean
+			membershipMetadata: {
+				role: Role
+				__typename: "Membership"
+			}
+			memberships: {
+				edges: {
+					metadata: {
+						bio: string
+						joinTime: string
+						role: Role
+						status: "ACTIVE"
+						title: ""
+						eventsAttended: number
+						rsvpStats: {
+							goingWentCount: number
+							notGoingDidntGoCount: number
+							waitlistCount: number
+							noShowCount: number
+							__typename: "MembershipRsvpStats"
+						}
+						profileQuestionsAnswers: {
+							questionId: string
+							question: string
+							answer: string
+							__typename: "ProfileQuestionAnswer"
+						}[]
+						dues: null
+						__typename: "Membership"
+					}
+					__typename: "GroupMemberEdge"
+				}[]
+
+				__typename: "GroupMemberConnection"
+			}
+			__typename: "Group"
+		}
+	}
+}
+
+export const fetchMemberDetails = async (
+	id: string | number,
+	groupName: string,
+	groupId: string,
+	cookie: string,
+): Promise<MemberExtraInfo> => {
+	const response = await fetch("https://www.meetup.com/gql2", {
 		headers: {
 			accept: "*/*",
 			"accept-language": "en-US",
@@ -18,29 +117,27 @@ export const fetchMemberDetails = async (id: string | number, groupName: string,
 			"sec-fetch-dest": "empty",
 			"sec-fetch-mode": "cors",
 			"sec-fetch-site": "same-origin",
-			"x-meetup-view-id": "43222e6b-8582-44cf-9188-318ff7bc6a29",
 			cookie,
-			Referer: `https://www.meetup.com`,
+			Referer: `https://www.meetup.com/${groupName}/events/`,
 			"Referrer-Policy": "strict-origin-when-cross-origin",
 		},
-		method: "GET",
+		body: `{"operationName":"getMembershipDetails","variables":{"memberId":"${id}","memberIntId":${id},"groupId":"${groupId}"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"3be499b5e6b12848b8120ee8827721c1a04af2391cea3a2833ae12459c4c120e"}}}`,
+		method: "POST",
 	})
-	const html = await response.text()
-	const matches = html.matchAll(
-		/(<p class="text--bold">(?<question>.+?)<\/p><p>(?<answer>.+?)<\/p>|<span>RSVPs<\/span><\/p><span><span>(?<rsvp_yes>\d+) yes<\/span><\/span><span class="text--middotLeft display--inline"><span>(?<rsvp_no>\d+) no<\/span>(?:<\/span><span class="text--middotLeft display--inline"><span>(?<rsvp_no_show>\d+) no-show<\/span>)?)/g,
-	)
-	return [...matches].reduce(
-		(extraInfo, match) => {
-			if (match.groups?.rsvp_yes !== undefined) {
-				extraInfo.rsvp_yes = Number.parseInt(match.groups?.rsvp_yes, 10)
-				extraInfo.rsvp_no = Number.parseInt(match.groups?.rsvp_no, 10)
-				extraInfo.rsvp_no_show = Number.parseInt(match.groups?.rsvp_no_show ?? 0, 10)
-			}
-			if (match.groups?.question !== undefined) {
-				extraInfo.questions[match.groups?.question.replaceAll(/<\/?\w+>/g, "")] = match.groups?.answer
-			}
-			return extraInfo
-		},
-		{ questions: {}, rsvp_yes: 0, rsvp_no: 0, rsvp_no_show: 0 } as MemberExtraInfo,
-	)
+	const json = (await response.json()) as MemberDetailsResponse
+
+	const metadata = json.data.group.memberships.edges[0].metadata
+	return {
+		rsvp_no_show: metadata.rsvpStats.noShowCount,
+		rsvp_yes: metadata.rsvpStats.goingWentCount,
+		rsvp_no: metadata.rsvpStats.notGoingDidntGoCount,
+		rsvp_waiting_list: metadata.rsvpStats.waitlistCount,
+		questions: metadata.profileQuestionsAnswers.reduce(
+			(questions, response) => {
+				questions[response.question] = response.answer
+				return questions
+			},
+			{} as { [key: string]: string },
+		),
+	}
 }
