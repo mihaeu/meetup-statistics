@@ -71,7 +71,7 @@ export const fetchMembers = async (cookie: string, groupName: string, withExtraI
             if (await exists(extraInfoCache)) {
                 member.extraInfo = await Bun.file(extraInfoCache).json()
             } else {
-                member.extraInfo = await fetchMemberDetails(member.id, cookie)
+                member.extraInfo = await fetchMemberDetails(member.id, groupName, cookie)
                 await Bun.write(extraInfoCache, JSON.stringify(member.extraInfo))
                 await Bun.sleep(500)
             }

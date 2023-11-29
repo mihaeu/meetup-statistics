@@ -5,8 +5,8 @@ export type MemberExtraInfo = {
 	rsvp_no_show: number
 }
 
-export const fetchMemberDetails = async (id: string | number, cookie: string) => {
-	const response = await fetch(`https://www.meetup.com/barcelona-polypeople/members/${id}/profile`, {
+export const fetchMemberDetails = async (id: string | number, groupName: string, cookie: string) => {
+	const response = await fetch(`https://www.meetup.com/${groupName}/members/${id}/profile`, {
 		headers: {
 			accept: "*/*",
 			"accept-language": "en-US",
