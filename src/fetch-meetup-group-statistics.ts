@@ -13,14 +13,14 @@ let username
 let password
 const groupName = await rl.question(`What is your group's name on meetup.com? `)
 
-const cachePath = join(__dirname, '..', '.cache')
+const cachePath = join(__dirname, '..', '.cache', groupName)
 if (!(await exists(cachePath))) {
-    await mkdir(cachePath)
+    await mkdir(cachePath, {recursive: true})
 }
 
-const membersCache = Bun.file(`${cachePath}/${groupName}-members.json`, { type: "application/json" })
+const membersCache = Bun.file(`${cachePath}/members.json`, { type: "application/json" })
 const membersCacheExists = await membersCache.exists()
-const eventsCache = Bun.file(`${cachePath}/${groupName}-events.json`, { type: "application/json" })
+const eventsCache = Bun.file(`${cachePath}/events.json`, { type: "application/json" })
 const eventsCacheExists = await eventsCache.exists()
 
 let cookie = ""
@@ -40,7 +40,7 @@ if (membersCacheExists) {
 	members = await membersCache.json()
 } else {
 	members = await fetchMembers(cookie, groupName, true, cachePath)
-	await Bun.write(`${cachePath}/${groupName}-members.json`, JSON.stringify(members, null, 2))
+	await Bun.write(`${cachePath}/members.json`, JSON.stringify(members, null, 2))
 }
 
 console.log("Fetching events ...")
@@ -51,8 +51,8 @@ if (eventsCacheExists) {
 	events = await eventsCache.json()
 } else {
 	events = await fetchPastEvents(members, groupName, cookie)
-	await Bun.write(`${cachePath}/${groupName}-events.json`, JSON.stringify(events, null, 2))
+	await Bun.write(`${cachePath}/events.json`, JSON.stringify(events, null, 2))
 }
 
-await Bun.write("members.tsv", membersToTsv(members))
-await Bun.write("past-events.tsv", pastEventsToTsv(events))
+await Bun.write(`${groupName}-members.tsv`, membersToTsv(members))
+await Bun.write(`${groupName}-past-events.tsv`, pastEventsToTsv(events))
