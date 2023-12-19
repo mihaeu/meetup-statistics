@@ -127,6 +127,16 @@ export const fetchMemberDetails = async (
 	const json = (await response.json()) as MemberDetailsResponse
 
 	const metadata = json.data.group.memberships.edges[0].metadata
+	if (!metadata) {
+		return {
+			rsvp_no_show: 0,
+			rsvp_yes: 0,
+			rsvp_no: 0,
+			rsvp_waiting_list: 0,
+			questions: {},
+		}
+	}
+
 	return {
 		rsvp_no_show: metadata.rsvpStats.noShowCount,
 		rsvp_yes: metadata.rsvpStats.goingWentCount,
