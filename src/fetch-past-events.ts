@@ -102,7 +102,7 @@ export const fetchPastEvents = async (
 		},
 		body: `{"operationName":"getPastGroupEvents","variables":{"urlname":"${groupName}"${
 			after ? `,"after":"${after}"` : ""
-		}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"561ba70749a5480ba1717381c1687faadc7512ec37b8552aa5fe3f6e76db719e"}}}`,
+		}},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"778d2bba8c4cc33b0f10eaa5f357dbcd8ac79c843148cdcfe4f76efabdbf7cc2"}}}`,
 		method: "POST",
 	})
 	const json = await response.json()

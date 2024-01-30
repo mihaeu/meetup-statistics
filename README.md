@@ -2,6 +2,8 @@
 
 # About
 
+⚠️ This project uses meetup.com's GraphQL server endpoints which is using [persistedQueries](https://www.apollographql.com/docs/apollo-server/performance/apq/) as such changes on their side can easily break this tool. This is fixable, but it works for me when I use it, so I'm too lazy to do it at the moment 🦥 ⚠️️️
+
 This project helps organizers of meetups get insights on past events and members in order to better help their group. You don't need a premium account for this, all you need is (co-)organizer access to the group you want to get statistics on.
 
 # Usage

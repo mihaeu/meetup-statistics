@@ -121,7 +121,7 @@ export const fetchMemberDetails = async (
 			Referer: `https://www.meetup.com/${groupName}/events/`,
 			"Referrer-Policy": "strict-origin-when-cross-origin",
 		},
-		body: `{"operationName":"getMembershipDetails","variables":{"memberId":"${id}","memberIntId":${id},"groupId":"${groupId}"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"3be499b5e6b12848b8120ee8827721c1a04af2391cea3a2833ae12459c4c120e"}}}`,
+		body: `{"operationName":"getMembershipDetails","variables":{"memberId":"${id}","memberIntId":${id},"groupId":"${groupId}"},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"e1a2da8398d1c43bd340ccf2a54ca50f7360aec745197225c32e6fa242f13483"}}}`,
 		method: "POST",
 	})
 	const json = (await response.json()) as MemberDetailsResponse
